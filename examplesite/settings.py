@@ -6,6 +6,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #Add the register_activate path
 register_activate_dir= BASE_DIR  #os.path.dirname(os.path.dirname(os.path.abspath('register_activate.__file__')))
 
+COMPANY_LIST_DIR = os.path.join(BASE_DIR, "companylist"),
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
@@ -29,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'register_activate',
+    'finance', 
 ]
 
 MIDDLEWARE = [
@@ -111,11 +113,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/static/'  #prefix to access static file in URL  it is under my_app/static/
 
-STATICFILES_DIRS = (
-    "static/",    
-   )
+#For any other user defined static files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, "companylist"),    
+]
    
    
 AUTHENTICATION_BACKENDS=[

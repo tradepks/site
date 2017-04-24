@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load finance_tags %}
+
+
+{% block additional_meta %}
+    <meta http-equiv="refresh" content="30" >
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid bg-grey">    
+    <div class="row">
+        <div class="col-sm-4" style="padding-bottom:5px">				
+            {% if not user.username %}
+                 <h4 class="text-warning text-left">Hello there!</h4>
+            {% else %}
+                 <h4 class="text-left">Welcome,{{user.username}}</h4>
+            {% endif %}	
+        </div>
+        <div class="col-sm-4" style="padding-bottom:5px">			
+            <h4 class="text-center">List of subscribed Stocks</h4>
+        </div>
+        <div class="col-sm-4" style="padding-bottom:5px">
+            <h4 class="text-right"><a href="{% url 'register_activate:logout' %}">Logout</a></h4>
+        </div>
+    </div>
+</div>
+<div class="container-fluid text-center">
+ <div class="table-responsive">
+    <table class="table-bordered table-striped" >
+    <thead class="thead-inverse">
+          <tr>
+          {% for k in names %}
+            <th>{{k}}</th>
+          {% endfor %}
+          </tr>  
+     </thead>
+     {% for qt in quotes %}
+        <tr >
+            {% for k in names %}
+            <td >{{ qt|getValue:k }}</td>        
+            {% endfor %}
+        </tr>
+    {% endfor %}
+    </table>
+ </div>
+</div>
+{% endblock %}

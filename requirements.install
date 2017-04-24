@@ -11,4 +11,7 @@ cssselect>=0.9.1
 lxml>=3.3.3
 django-sekizai>0.8
 django-angular
-
+googlefinance
+yahoo-finance
+requests
+BeautifulSoup4

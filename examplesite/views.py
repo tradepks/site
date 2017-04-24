@@ -23,6 +23,12 @@ class MyView(LoginRequiredMixin, TemplateView):
 
 
 
+        
+        
+        
+        
+        
+
 @login_required(login_url='/register_activate/signin/')
 def index(request):
 	if request.method == 'GET':

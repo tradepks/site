@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title></title>
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.10.9/css/dataTables.bootstrap.min.css">
+        <style type="text/css">
+            #main {
+              padding-top: 15px;
+            }
+            #csv-table_wrapper table.table-bordered {  
+                border: none;
+                margin-top: 0 !important;
+            }
+
+            div.dataTables_wrapper div.dataTables_length select {
+              width: inherit;
+              display: inherit;
+            }
+
+            div.dataTables_wrapper div.dataTables_filter input {
+              width: inherit;
+              display: inherit;
+            }
+
+            .dataTables_wrapper .form-group {
+                margin-bottom: 0;
+            }
+
+            .dataTables_wrapper div.dataTables_info {
+              padding-top: 4px !important;
+            }
+
+            .dataTables_paginate a {
+                margin: 0 2px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="main" class="container-fluid">
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="loading" class="alert alert-info lead text-center">Loading csv file ...</div>
+                    <div id="error" class="alert alert-danger lead text-center hidden"></div>
+                    <form id="frm-example" action="/qt/submit/" method="POST">
+                        {% csrf_token %} 
+                        <table id="csv-table" class="table table-bordered table-striped table-condensed"></table>
+                        <p><button>Submit</button></p>
+                    </form>
+                    <p><b>Selected rows data:</b></p>
+                    <pre id="example-console-rows"></pre>
+
+                    <p><b>Form data as submitted to the server:</b></p>
+                    <pre id="example-console-form"></pre>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.min.js"></script>
+        <script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+        <link type="text/css" href="//gyrocode.github.io/jquery-datatables-checkboxes/1.2.4/css/dataTables.checkboxes.css" rel="stylesheet" />
+        <script type="text/javascript" src="//gyrocode.github.io/jquery-datatables-checkboxes/1.2.4/js/dataTables.checkboxes.min.js"></script>
+
+        <script type="text/javascript">
+            $(document).on('ready', function() {
+                var showError = function(message) {
+                    hideLoading();
+                    if(!message || typeof message !== 'string' || !message instanceof String) {
+                        message = "Une erreur est survenue";
+                    }
+                    $('#error').removeClass('hidden');
+                    $('#error').html(message);
+                }
+
+                var hideLoading = function() {
+                   $('#loading').hide();
+                }
+
+                var uriCsvFile = "{{filename}}" ;//window.location.hash.replace("#", "");
+                var csvfile = "" + window.location.protocol+"//"+window.location.hostname+":"+window.location.port+"/static/"+uriCsvFile;
+                //window.alert(csvfile)
+                if(!uriCsvFile) {
+                    uriCsvFile = window.location.pathname.replace(/.*\/(.+.csv).html$/, '$1');
+                    
+                    if(window.location.pathname == uriCsvFile) {
+                        uriCsvFile = false;
+                    }              
+                }
+
+                if(!uriCsvFile) {
+                    showError("CSV File not specified or not found");
+                    return;
+                }
+
+                document.title = uriCsvFile;
+
+                $('#loading').html("Loading csv file : " + uriCsvFile);
+
+                var data = Papa.parse(csvfile, {
+                    download: true,
+                    skipEmptyLines: true,
+                    header: true,
+                    error: function(err, file, inputElem, reason)
+                    { 
+                        showError(err);
+                    },
+                    complete: function(data)
+                    {
+                        console.log("loaded");
+                        if(data.errors.length > 0) {
+                            showError("File contains error, is maybe not a csv file");
+                            return;
+                        }
+                        var columns = [];
+                        for(key in data.meta.fields) {
+                          columns.push({ data: data.meta.fields[key], title: data.meta.fields[key] });
+                        }
+                        
+                        var table = $('#csv-table').DataTable({
+                            data: data.data,
+                            columns: columns,
+                            scrollY: true,
+                            scrollX: true,
+                            scrollCollapse: true,
+                            searching: true,
+                            paging: true,
+                            ordering: true,
+                            lengthMenu: [[10,100,500], [10, 100, 500]],
+                            language: {
+                                "info": "_START_ to _END_ (_TOTAL_ lines)",
+                            },                             
+                            'columnDefs': [
+                                 {
+                                    'targets': 0,
+                                    'checkboxes': {
+                                       'selectRow': true
+                                    }
+                                 }
+                              ],
+                              'select': {
+                                 'style': 'multi'
+                              },
+                              'order': [[1, 'asc']],
+                            initComplete: function() {
+                                hideLoading();
+                                $('#csv-table_wrapper').addClass('panel panel-default');
+                                $('#csv-table_wrapper').prepend('<div class="panel-heading"></div>');
+                                $('#csv-table_wrapper .panel-heading').append($('#csv-table_wrapper #csv-table_length').detach());
+                                $('#csv-table_wrapper .panel-heading').append($('#csv-table_wrapper #csv-table_filter').detach());
+                                $('#csv-table_wrapper .panel-heading').append("<div class='col-sm-3 col-md-3 text-right text-muted dataTables_title'><a href='"+uriCsvFile+"' target='_blank'>"+uriCsvFile+"</a></div>");
+                                $('#csv-table_wrapper .panel-heading').append("<div class='clearfix'></div>");
+                                $('#csv-table_length').addClass('form-group row col-sm-3 col-md-1');
+                                $('#csv-table_length').html($('<div class="col-xs-12 row"></div>').append($('#csv-table_length select').detach()));
+                                $('#csv-table_length select').addClass('form-control input-sm');
+                                $('#csv-table_filter').addClass('form-group row col-sm-6 col-md-8');
+                                $('#csv-table_filter').html($('<div class="col-xs-12 row"></div>').append($('#csv-table_filter input').detach()));
+                                $('#csv-table_filter input').addClass('form-control input-sm');
+                                $('#csv-table_filter input').attr('placeholder', 'Rechercher ...');
+                                $('#csv-table_wrapper').append('<div class="panel-footer"></div>');
+                                $('#csv-table_wrapper .panel-footer').append($('#csv-table_wrapper #csv-table_info').detach());
+                                $('#csv-table_wrapper .panel-footer').append($('#csv-table_wrapper #csv-table_paginate').detach());
+                                $('#csv-table_wrapper .panel-footer').append("<div class='clearfix'></div>");
+                                $('#csv-table_info').addClass('row col-xs-5 text-muted');
+                                $('#csv-table_paginate').addClass('row col-xs-7');
+                            },
+                            drawCallback: function() {
+                              $('#csv-table_paginate a').addClass('btn btn-default');
+                              $('#csv-table_paginate a.current').addClass('btn-primary');
+                            }
+                        });
+
+                        $('#loading').hide();  
+                        
+                        $('#frm-example').on('submit', function(e){
+                              var form = this;
+                              
+                              var rows_selected = table.column(0).checkboxes.selected();
+
+                              // Iterate over all selected checkboxes
+                              $.each(rows_selected, function(index, rowId){
+                                 // Create a hidden element 
+                                 $(form).append(
+                                     $('<input>')
+                                        .attr('type', 'hidden')
+                                        .attr('name', 'id[]')
+                                        .val(rowId)
+                                 );
+                              });
+
+                              // FOR DEMONSTRATION ONLY
+                              // The code below is not needed in production
+                              
+                              // Output form data to a console     
+                              $('#example-console-rows').text(rows_selected.join(","));
+                              
+                              // Output form data to a console     
+                              $('#example-console-form').text($(form).serialize());
+                               
+                              // Remove added elements
+                              //$('input[name="id\[\]"]', form).remove();
+                               
+                              // Prevent actual form submission
+                              //e.preventDefault();
+                           });
+                    }
+                    
+
+                });
+            });
+        </script>
+    </body>
+</html>
