@@ -1,46 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title></title>
+{% extends "base.html" %}
+{% load finance_tags %}
 
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
-        <link rel="stylesheet" href="https://cdn.datatables.net/1.10.9/css/dataTables.bootstrap.min.css">
-        <style type="text/css">
-            #main {
-              padding-top: 15px;
-            }
-            #csv-table_wrapper table.table-bordered {  
-                border: none;
-                margin-top: 0 !important;
-            }
 
-            div.dataTables_wrapper div.dataTables_length select {
-              width: inherit;
-              display: inherit;
-            }
+{% block style_meta %}  
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.9/css/dataTables.bootstrap.min.css">
+<link type="text/css" href="//gyrocode.github.io/jquery-datatables-checkboxes/1.2.4/css/dataTables.checkboxes.css" rel="stylesheet" />
+{% endblock %}
+{% block style_inline_meta %}  
+{{block.super}}
+<style type="text/css">
+    #main {
+      padding-top: 15px;
+    }
+    #csv-table_wrapper table.table-bordered {  
+        border: none;
+        margin-top: 0 !important;
+    }
 
-            div.dataTables_wrapper div.dataTables_filter input {
-              width: inherit;
-              display: inherit;
-            }
+    div.dataTables_wrapper div.dataTables_length select {
+      width: inherit;
+      display: inherit;
+    }
 
-            .dataTables_wrapper .form-group {
-                margin-bottom: 0;
-            }
+    div.dataTables_wrapper div.dataTables_filter input {
+      width: inherit;
+      display: inherit;
+    }
 
-            .dataTables_wrapper div.dataTables_info {
-              padding-top: 4px !important;
-            }
+    .dataTables_wrapper .form-group {
+        margin-bottom: 0;
+    }
 
-            .dataTables_paginate a {
-                margin: 0 2px;
-            }
-        </style>
-    </head>
-    <body>
+    .dataTables_wrapper div.dataTables_info {
+      padding-top: 4px !important;
+    }
+
+    .dataTables_paginate a {
+        margin: 0 2px;
+    }
+</style>
+{% endblock %}
+{% block scripts_meta %} 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="//gyrocode.github.io/jquery-datatables-checkboxes/1.2.4/js/dataTables.checkboxes.min.js"></script>
+{% endblock %}
+{% block content %}
         <div id="main" class="container-fluid">
             <div class="row">
                 <div class="col-md-12">
@@ -50,22 +57,12 @@
                         {% csrf_token %} 
                         <table id="csv-table" class="table table-bordered table-striped table-condensed"></table>
                         <p><button>Submit</button></p>
-                    </form>
-                    <p><b>Selected rows data:</b></p>
-                    <pre id="example-console-rows"></pre>
-
-                    <p><b>Form data as submitted to the server:</b></p>
-                    <pre id="example-console-form"></pre>
+                    </form>                    
                 </div>
             </div>
         </div>
 
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.min.js"></script>
-        <script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
-        <link type="text/css" href="//gyrocode.github.io/jquery-datatables-checkboxes/1.2.4/css/dataTables.checkboxes.css" rel="stylesheet" />
-        <script type="text/javascript" src="//gyrocode.github.io/jquery-datatables-checkboxes/1.2.4/js/dataTables.checkboxes.min.js"></script>
-
+                
         <script type="text/javascript">
             $(document).on('ready', function() {
                 var showError = function(message) {
@@ -81,7 +78,8 @@
                    $('#loading').hide();
                 }
 
-                var uriCsvFile = "{{filename}}" ;//window.location.hash.replace("#", "");
+                var uriCsvFile = "{{filename}}" 
+                var typeExchange = "{{type}}"
                 var csvfile = "" + window.location.protocol+"//"+window.location.hostname+":"+window.location.port+"/static/"+uriCsvFile;
                 //window.alert(csvfile)
                 if(!uriCsvFile) {
@@ -188,24 +186,9 @@
                                      $('<input>')
                                         .attr('type', 'hidden')
                                         .attr('name', 'id[]')
-                                        .val(rowId)
+                                        .val(typeExchange + ":" + rowId)
                                  );
-                              });
-
-                              // FOR DEMONSTRATION ONLY
-                              // The code below is not needed in production
-                              
-                              // Output form data to a console     
-                              $('#example-console-rows').text(rows_selected.join(","));
-                              
-                              // Output form data to a console     
-                              $('#example-console-form').text($(form).serialize());
-                               
-                              // Remove added elements
-                              //$('input[name="id\[\]"]', form).remove();
-                               
-                              // Prevent actual form submission
-                              //e.preventDefault();
+                              });                              
                            });
                     }
                     
@@ -213,5 +196,4 @@
                 });
             });
         </script>
-    </body>
-</html>
+ {% endblock %}

@@ -3,10 +3,20 @@ import register_activate
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+#############User defined ###############
 #Add the register_activate path
 register_activate_dir= BASE_DIR  #os.path.dirname(os.path.dirname(os.path.abspath('register_activate.__file__')))
 
 COMPANY_LIST_DIR = os.path.join(BASE_DIR, "companylist"),
+
+URLS_LIST_FOR_DOWNLOAD = {
+ "http://www.nasdaq.com/screening/companies-by-industry.aspx?exchange=NASDAQ&render=download" : "NASDAQ.csv",
+ "http://www.nasdaq.com/screening/companies-by-industry.aspx?exchange=NYSE&render=download": "NYSE.csv",
+ "http://www.nasdaq.com/screening/companies-by-industry.aspx?exchange=AMEX&render=download": "AMEX.csv",
+}
+########################################
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/

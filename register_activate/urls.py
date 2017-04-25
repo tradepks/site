@@ -14,3 +14,5 @@ urlpatterns = [
 	url(r'^logout/$',views.log_out, name='logout'),
 
 	]
+
+handler404 = 'register_activate.views.custom_404'

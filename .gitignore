@@ -3,5 +3,7 @@
 *.txt
 __pycache__/*
 *.log
+*.csv
 #Database
 *.sqlite3
+migrations/*
