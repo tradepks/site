@@ -44,11 +44,20 @@
         {% endblock %}
 	</head>
 	<body style="padding-bottom: 10px">
-		<div class="header text-center">		
-		<h1><strong>Website Name</strong></h1>
-		<br>
-			<h4>A description of your brilliant website</h4>
-		</div>
+		<div class="header">
+            <div class= "text-center">
+                <h1><strong>Website Name</strong></h1>
+                <br>
+                    <h4>A description of your brilliant website</h4>
+            </div>
+            <div class="text-left">
+            {% if not user.username %}
+                 <p class="text-warning">Hello there!</p>
+            {% else %}
+                 <h4>Welcome,{{user.username}}</h4>
+            {% endif %}
+            </div>
+        </div>
 		{% block content %}
 		{% endblock %}
 	<div class="footer">

@@ -1,9 +1,12 @@
 *.bak
 *.pyc
 *.txt
-__pycache__/*
+__pycache__/
 *.log
 *.csv
 #Database
 *.sqlite3
-migrations/*
+migrations/
+tmp/
+media/
+whoosh_index/

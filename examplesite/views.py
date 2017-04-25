@@ -22,7 +22,6 @@ class MyView(LoginRequiredMixin, TemplateView):
 
 
 
-
         
         
         

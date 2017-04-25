@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+from machina import get_apps as get_machina_apps
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -41,7 +42,17 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'register_activate',
     'finance', 
-]
+    
+   # Machina related apps
+   #Django-machina uses django-mptt to handle the tree of forum instances. 
+   #Search capabilities are provided by django-haystack.
+  'mptt',
+  'haystack',
+  'widget_tweaks',
+  #debug machina 
+  'debug_toolbar',
+]+ get_machina_apps()
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -51,15 +62,25 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+    # Machina
+    'machina.apps.forum_permission.middleware.ForumPermissionMiddleware',
+    #debug 
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'examplesite.urls'
+
+from machina import MACHINA_MAIN_TEMPLATE_DIR
+
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, 'templates'),
                 os.path.join(register_activate_dir,'register_activate/templates/register_activate'),
+                #Machina
+                MACHINA_MAIN_TEMPLATE_DIR,
                 ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -68,6 +89,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # Machina
+                'machina.core.context_processors.metadata',
             ],            
         },
     },
@@ -125,13 +148,59 @@ USE_TZ = True
 
 STATIC_URL = '/static/'  #prefix to access static file in URL  it is under my_app/static/
 
+from machina import MACHINA_MAIN_STATIC_DIR
+
 #For any other user defined static files
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
-    os.path.join(BASE_DIR, "companylist"),    
+    os.path.join(BASE_DIR, "companylist"),   
+    # Machina
+    MACHINA_MAIN_STATIC_DIR,    
 ]
+
+#Machina 
+CACHES = {
+  'default': {
+    'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+  },
+  'machina_attachments': {
+    'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+    'LOCATION': os.path.join(BASE_DIR, "tmp"),
+  }
+}
+#Machina 
+HAYSTACK_CONNECTIONS = {
+  'default': {
+    'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+    'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
+  },
+}
+#Machina 
+#default permission 
+MACHINA_DEFAULT_AUTHENTICATED_USER_FORUM_PERMISSIONS = [
+    'can_see_forum',
+    'can_read_forum',
+    'can_start_new_topics',
+    'can_reply_to_topics',
+    'can_edit_own_posts',
+    'can_post_without_approval',
+    'can_create_polls',
+    'can_vote_in_polls',
+    'can_download_file',
+]
+MACHINA_FORUM_NAME="TradePks"
+
    
-   
+# Absolute filesystem path to the directory that will hold user-uploaded files.
+# Example: "/home/media/media.lawrence.com/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# URL that handles the media served from MEDIA_ROOT. Make sure to use a
+# trailing slash. so below URLs are actually  from above MEDIA_ROOT
+# Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
+MEDIA_URL = '/media/'
+
+
 AUTHENTICATION_BACKENDS=[
 'django.contrib.auth.backends.ModelBackend', 
 'register_activate.email_auth.EmailBackend', 
@@ -146,6 +215,11 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'tradepksfounder@gmail.com'
 EMAIL_HOST_PASSWORD = 'April123$%^'  #give correct password
 EMAIL_USE_TLS = True
+
+###Login required 
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True    # everytime browser is closed, session is expired, ELSE persistant session 
+SESSION_COOKIE_AGE  = 5*60 # in seconds 
 
 
 ##Logging 

@@ -15,3 +15,6 @@ googlefinance
 yahoo-finance
 requests
 BeautifulSoup4
+django-machina
+Whoosh
+django-debug-toolbar
